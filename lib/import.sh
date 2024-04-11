@@ -12,8 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# get current shell context
+_shell=$(ps -p $$ -o comm=)
+
+# calculate script root dir
+if [[ ${_shell} =~ "zsh" ]]; then
+  _script_file="${(%):-%x}"
+else
+  _script_file="${BASH_SOURCE[0]}"
+fi
+
+_script_dir=${_script_file%/*}
+
 # set critical internal variables
-export __bf_root_dir=$(cd ${BASH_SOURCE[0]%/*}/.. && pwd -P)
+export __bf_root_dir=$(cd ${_script_dir}/.. && pwd -P)
 export __bf_lib_dir="${__bf_root_dir}/lib"
 
 # import low-level libs

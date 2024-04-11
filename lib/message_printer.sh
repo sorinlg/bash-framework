@@ -77,8 +77,7 @@ decorate_error() {
 
 __decorate_cmd_output() {
     local _custom_label="${1}"
-    # local _cmd_format="\e[34m[${_custom_label}]\e[0m %s\n"
-    local _cmd_format="$(__add_emphasis_blue [${_custom_label}]) %s\n"
+    local _cmd_format="$(__add_emphasis_blue ["${_custom_label}"]) %s\n"
 
     # decorate command output
     while read line; do printf "${_cmd_format}" "$line"; done

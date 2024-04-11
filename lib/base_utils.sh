@@ -29,8 +29,17 @@ get_entrypoint_script() {
     # shorten absolute path to just script name
     _bash_caller_first_name=${_bash_caller_first_path##*/}
 
+    # check if running in zsh
+    if [[ ${_shell} =~ "zsh" ]]; then
+        _zsh_caller_file_path="${funcfiletrace[3]%%:*}"
+        # shorten absolute path to just script name
+        _zsh_caller_first_name=${_zsh_caller_file_path##*/}
+        # set the caller name to the zsh value
+        _bash_caller_first_name=$_zsh_caller_first_name
+    fi
+
     # return result
-    echo ${_bash_caller_first_name}
+    echo "${_bash_caller_first_name}"
 }
 
 ###############################################################################
@@ -81,8 +90,16 @@ __safe_set_bash_pipefail() {
 __safe_unset_bash_pipefail() {
     var_name="__set_pipefail_original"
 
+    _shell=$(ps -p $$ -o comm=)
+
     # toggle bash setting only if it was not enabled
-    [ "${!var_name}" -eq 1 ] && __toggle_pipefail
+    if [[ ${_shell} =~ "zsh" ]]; then
+        # Zsh
+        [ "${(P)var_name}" -eq 1 ] && __toggle_pipefail
+    else
+        # Bash
+        [ "${!var_name}" -eq 1 ] && __toggle_pipefail
+    fi
 }
 
 ###############################################################################
@@ -132,8 +149,16 @@ __safe_unset_bash_setting() {
     option="${1}"
     var_name="__set_${option}_original"
 
+    _shell=$(ps -p $$ -o comm=)
+
     # toggle bash setting only if it was not enabled
-    [ "${!var_name}" -eq 1 ] && __toggle_bash_setting "${option}"
+    if [[ ${_shell} =~ "zsh" ]]; then
+        # Zsh
+        [ "${(P)var_name}" -eq 1 ] && __toggle_bash_setting "${option}"
+    else
+        # Bash
+        [ "${!var_name}" -eq 1 ] && __toggle_bash_setting "${option}"
+    fi
 }
 
 ###############################################################################
