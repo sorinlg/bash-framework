@@ -1,6 +1,9 @@
 # bash-framework
 
 ## Changelog
+### 0.9.1
+- [fixed] output buffer and decorator was not behaving as expected in jenkins
+
 ### 0.9.0
 - [added] zsh support
 -

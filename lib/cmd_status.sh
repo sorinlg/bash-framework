@@ -125,10 +125,10 @@ __cmd_exec() {
 
     # run the command and decorate the output if "decorate_output" is enabled
     if [ "${decorate_output}" = "decorate_output" ]; then
-        bash -c "$command" &> ${buffer} | __decorate_cmd_output "${command%% *}"
+        bash -c "$command" 2>&1 > ${buffer} | __decorate_cmd_output "${command%% *}"
         local result=$?
     else
-        bash -c "$command" &> ${buffer}
+        bash -c "$command" 2>&1 > ${buffer}
         local result=$?
     fi
 
