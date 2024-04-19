@@ -33,6 +33,7 @@ _DEFAULT_CMD_FLAGS=(
     "print_outcome"         # 6
     "aborting..."           # 7
     "continuing..."         # 8
+    '0'                     # 9
 )
 
 ## internal function that can
@@ -51,6 +52,7 @@ __parse_status() {
     local fail_message="${7}"
     local strict_message="${8}"
     local no_strict_message="${9}"
+    local valid_exit_codes="${10}"
     __safe_unset_bash_setting 'u'
 
     # set decorators
@@ -63,7 +65,13 @@ __parse_status() {
     label_color='30;1' # light gray
     result_message="${result_deco_open} ${OK} ${result_deco_close}"
     outcome_message="${outcome_deco_open}done${outcome_deco_close}"
-    if [ $result -ne 0 ]; then
+    if ( printf '%s\0' "${valid_exit_codes[@]}" | grep -qw "$result" ); then
+        detected_success='yes'
+    else
+        detected_success='no'
+    fi
+
+    if [ $detected_success = 'no' ]; then
         # rather sad flow
         label_color='31' # red
         result_message="${result_deco_open} ${FAIL} ${result_deco_close}";
@@ -89,7 +97,7 @@ __parse_status() {
     [ "${print_status}" = "print_status" ] && printf "${_format}" "${message} ${outcome_message}" "${result_message}"
 
     # failure handling
-    if [ $result -ne 0 ]; then
+    if [ $detected_success = 'no' ]; then
         # print out custom error message if set
         [ -n "${fail_message}" ] && (>&2 printf "%s\n" "${fail_message}")
 
@@ -115,6 +123,7 @@ __cmd_exec() {
     local fail_message="${8}"
     local strict_message="${9}"
     local no_strict_message="${10}"
+    local valid_exit_codes="${11}"
     __safe_unset_bash_setting 'u'
 
     local buffer='/dev/stdout'
@@ -136,7 +145,7 @@ __cmd_exec() {
     __safe_unset_bash_pipefail
 
     # print status
-    __parse_status "${message}" "${result}" "${strict}" "${print_message}" "${print_status}" "${print_outcome}" "${fail_message}" "${strict_message}" "${no_strict_message}"
+    __parse_status "${message}" "${result}" "${strict}" "${print_message}" "${print_status}" "${print_outcome}" "${fail_message}" "${strict_message}" "${no_strict_message}" "${valid_exit_codes}"
 
     # pass command exit-code to caller
     return $result
@@ -236,7 +245,8 @@ run_cmd() {
     local print_outcome="${9:-${_DEFAULT_CMD_FLAGS[6]}}"
     local strict_message="${10:-${_DEFAULT_CMD_FLAGS[7]}}"
     local no_strict_message="${11:-${_DEFAULT_CMD_FLAGS[8]}}"
-    local fail_message="${12:-}"
+    local valid_exit_codes="${12:-${_DEFAULT_CMD_FLAGS[9]}}"
+    local fail_message="${13:-}"
     __safe_unset_bash_setting 'u'
 
     # print notice
@@ -246,7 +256,7 @@ run_cmd() {
     [ "${print_cmd}" = "print_cmd" ] && info "${command}"
 
     # execute command and store exit code
-    __cmd_exec "${command}" "${decorate_output}" "${strict}" "${print_output}" "${print_message}" "${print_status}" "${print_outcome}" "${fail_message}" "${strict_message}" "${no_strict_message}"
+    __cmd_exec "${command}" "${decorate_output}" "${strict}" "${print_output}" "${print_message}" "${print_status}" "${print_outcome}" "${fail_message}" "${strict_message}" "${no_strict_message}" "${valid_exit_codes}"
     local result=$?
 
     # pass command exit-code to caller

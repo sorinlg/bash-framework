@@ -1,6 +1,9 @@
 # bash-framework
 
 ## Changelog
+### 0.9.2
+- [fixed] support for plan -detailed-exitcode added
+
 ### 0.9.1
 - [fixed] output buffer and decorator was not behaving as expected in jenkins
 
